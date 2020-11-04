@@ -21,7 +21,7 @@ if ( ! class_exists( 'myCRED_Hook_Video_Views' ) ) :
 					'log'      => '%plural% for viewing video',
 					'logic'    => 'play',
 					'interval' => '',
-					'leniency' => 10
+          'leniency' => 10,
 				)
 			), $hook_prefs, $type );
 
@@ -68,7 +68,6 @@ if ( ! class_exists( 'myCRED_Hook_Video_Views' ) ) :
 		 * @version 1.0
 		 */
 		public function video_view( $setup = array() ) {
-
 			$user_id  = get_current_user_id();
 			if ( $this->core->exclude_user( $user_id ) ) wp_send_json_error();
 
@@ -93,13 +92,14 @@ if ( ! class_exists( 'myCRED_Hook_Video_Views' ) ) :
 			$watched  = $seconds + $leniency;
 
 			$status   = 'silence';
-
+      $users_all_log     = $this->get_all_users_video_log( $user_id );
+      
 			switch ( $logic ) {
 
 				// Award points when video starts
-				case 'play' :
-
-					if ( $state == 1 ) {
+        case 'play' :
+          if(count($users_all_log) === 3) return;
+          if ( $state == 1 ) {
 
 						if ( ! $this->has_entry( 'watching_video', '', $user_id, $video_id, $this->mycred_type ) ) {
 
@@ -263,6 +263,21 @@ if ( ! class_exists( 'myCRED_Hook_Video_Views' ) ) :
 			global $wpdb, $mycred_log_table;
 
 			return $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$mycred_log_table} WHERE user_id = %d AND data = %s AND ctype = %s;", $user_id, $video_id, $this->mycred_type ) );
+
+    }
+    
+    /**
+		 * Get All Logs
+		 * Returns the log for a given video id.
+		 * @since 1.2
+		 * @version 1.0.1
+		 */
+    public function get_all_users_video_log( $user_id ) {
+
+      global $wpdb, $mycred_log_table;
+      date_default_timezone_set('Asia/Jakarta');
+      $current_date = date('Y-m-d', time()); 
+			return $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$mycred_log_table} WHERE user_id = %d AND ctype = %s AND ref = %s AND DATE(FROM_UNIXTIME(time)) = %s;", $user_id, $this->mycred_type, 'watching_video', '2020-11-04') );
 
 		}
 
