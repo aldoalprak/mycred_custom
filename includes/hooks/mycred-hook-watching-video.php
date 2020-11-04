@@ -21,7 +21,7 @@ if ( ! class_exists( 'myCRED_Hook_Video_Views' ) ) :
 					'log'      => '%plural% for viewing video',
 					'logic'    => 'play',
 					'interval' => '',
-          'leniency' => 10,
+          'leniency' => 10
 				)
 			), $hook_prefs, $type );
 
@@ -93,16 +93,16 @@ if ( ! class_exists( 'myCRED_Hook_Video_Views' ) ) :
 
 			$status   = 'silence';
       $users_all_log     = $this->get_all_users_video_log( $user_id );
-      
-			switch ( $logic ) {
+      $limit_per_day = 3; // modify this to change the limit
+ 			switch ( $logic ) {
 
 				// Award points when video starts
         case 'play' :
-          if(count($users_all_log) === 3) return;
           if ( $state == 1 ) {
-
+            //prevent user to get point if reach the limit
+            if(count($users_all_log) === $limit_per_day) return;
 						if ( ! $this->has_entry( 'watching_video', '', $user_id, $video_id, $this->mycred_type ) ) {
-
+              
 							// Execute
 							$this->core->add_creds(
 								'watching_video',
@@ -134,7 +134,8 @@ if ( ! class_exists( 'myCRED_Hook_Video_Views' ) ) :
 					if ( ! preg_match( '/22/', $actions, $matches ) || $watched >= $duration ) {
 
 						if ( $state == 0 ) {
-
+              //prevent user to get point if reach the limit
+              if(count($users_all_log) === $limit_per_day) return;
 							if ( ! $this->has_entry( 'watching_video', '', $user_id, $video_id, $this->mycred_type ) ) {
 
 								// Execute
@@ -277,7 +278,7 @@ if ( ! class_exists( 'myCRED_Hook_Video_Views' ) ) :
       global $wpdb, $mycred_log_table;
       date_default_timezone_set('Asia/Jakarta');
       $current_date = date('Y-m-d', time()); 
-			return $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$mycred_log_table} WHERE user_id = %d AND ctype = %s AND ref = %s AND DATE(FROM_UNIXTIME(time)) = %s;", $user_id, $this->mycred_type, 'watching_video', '2020-11-04') );
+			return $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$mycred_log_table} WHERE user_id = %d AND ctype = %s AND ref = %s AND DATE(FROM_UNIXTIME(time)) = %s;", $user_id, $this->mycred_type, 'watching_video', $current_date) );
 
 		}
 
